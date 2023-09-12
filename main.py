@@ -7,4 +7,4 @@ app = flask.Flask("farrr")
 def index():
     return flask.render_template("index.html")
 
-app.run(host="0.0.0.0",port=8080)
+#app.run(host="0.0.0.0",port=8080)
