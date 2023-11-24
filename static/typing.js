@@ -24,7 +24,7 @@ setTimeout(typewriterEffect(text2, "typerwriter-text2"), 0)
 
 const cursor = document.getElementById("typewriter-loop")
 
-const texts = ["a back-end developer", "a student", "a game developer", "a table tennis player"]
+const texts = ["a back-end developer", "a student", "a game developer", "an engineering aspirant"]
 
 const timeout = ms => new Promise(r => setTimeout(r, ms));
 
