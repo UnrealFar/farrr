@@ -3,6 +3,8 @@ orbs:
   python: circleci/python@2.1.1
 jobs:
   build:
+    docker:
+      - image: circleci/python:3.11.5
     executor: python/default
     steps:
       - checkout
