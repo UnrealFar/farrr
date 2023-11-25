@@ -1,0 +1,34 @@
+version: 2.1
+orbs:
+  python: circleci/python@1.2
+
+workflows:
+  build-app-with-test:
+    jobs:
+      - build-and-test
+      - deploy:
+          requires:
+            - build-and-test
+jobs:
+  build-and-test:
+    docker:
+      - image: cimg/python:3.11
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            pipenv --three
+            pipenv install
+      - run:
+          name: Run tests
+          command: pipenv run pytest
+  deploy:
+    docker:
+      - image: cimg/python:3.11
+    steps:
+      - checkout
+      - run:
+          name: Deploy the server
+          command: |
+            python3 -m run
