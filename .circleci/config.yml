@@ -15,7 +15,7 @@ jobs:
       - run:
           command: |
             python3 -m run
-          name: Test
+          name: Run the server
 workflows:
   main:
     jobs:
