@@ -13,6 +13,7 @@ jobs:
           pkg-manager: pip
       - run:
           command: |
+          ls
             python3 -m run
           name: Test
 workflows:
