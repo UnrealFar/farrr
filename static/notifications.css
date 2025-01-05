@@ -5,16 +5,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
     height: 100vh;
     margin: 0;
-    padding: 0 1rem;
-    box-sizing: border-box;
 }
 
 .navbar {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
     padding: 1rem;
     border-radius: 5px;
@@ -25,12 +22,10 @@ body {
 .nav-item {
     color: white;
     text-decoration: none;
-    margin: 0.5rem 0;
+    margin: 0 1rem;
     padding: 0.5rem 1rem;
     border-radius: 5px;
     transition: background-color 0.3s;
-    width: 100%;
-    text-align: center;
 }
 
 .nav-item:hover {
@@ -39,18 +34,14 @@ body {
 
 .search-form {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    width: 100%;
 }
 
 .search-form input {
     padding: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-right: 0.5rem;
     border: none;
     border-radius: 5px;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .search-form button {
@@ -61,38 +52,50 @@ body {
     color: white;
     cursor: pointer;
     transition: background-color 0.3s;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .search-form button:hover {
     background-color: #777;
 }
 
-/* Media query for larger screens */
-@media (min-width: 600px) {
-    .navbar {
-        flex-direction: row;
-        justify-content: center;
-    }
+.notifications-container {
+    background-color: #333;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
 
-    .nav-item {
-        margin: 0 1rem;
-        width: auto;
-    }
+.notifications-container h1 {
+    margin-bottom: 1rem;
+}
 
-    .search-form {
-        flex-direction: row;
-        width: auto;
-    }
+.notifications-container ul {
+    list-style-type: none;
+    padding: 0;
+}
 
-    .search-form input {
-        margin-right: 0.5rem;
-        margin-bottom: 0;
-        width: auto;
-    }
+.notifications-container li {
+    background-color: #444;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    text-align: left;
+    position: relative;
+}
 
-    .search-form button {
-        width: auto;
-    }
+.notifications-container li.unread::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -10px;
+    width: 10px;
+    height: 10px;
+    background-color: blue;
+    border-radius: 50%;
+    transform: translateY(-50%);
+}
+
+.notifications-container li p {
+    margin: 0;
 }

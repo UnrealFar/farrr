@@ -1,1 +1,5 @@
-Flask==2.3.3
+FastAPI
+python-multipart
+dotenv
+firebase-admin
+google-cloud-firestore

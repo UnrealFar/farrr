@@ -1,6 +1,8 @@
 // Credit: Ayu Itz(https://github.com/iayushanand)
 // Description: Typing effect for the home page
 
+// not gonna use this for now
+
 const text1 = "Hi, I am";
 const text2 = " farrr"
 const speed = 50;

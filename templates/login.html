@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <link rel="stylesheet" href="/static/login.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqK1KZoZ-pZHy3RB-JlsuSBZ3vnq12Xmc",
+            authDomain: "farrr-app.firebaseapp.com",
+            projectId: "farrr-app",
+            storageBucket: "farrr-app.firebasestorage.app",
+            messagingSenderId: "476419586636",
+            appId: "1:476419586636:web:28c9fe6027e05afae052e9",
+            measurementId: "G-NTBL22YW3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Handle email-password login
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const idToken = await userCredential.user.getIdToken();
+
+                const response = await fetch('/verify-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id_token: idToken })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+                if (data.redirect) {
+                    window.location.href = `${data.redirect}?uid=${data.uid}`;
+                } else {
+                    localStorage.setItem('uid', userCredential.uid);
+                    localStorage.setItem('email', userCredential.user.email);
+                    localStorage.setItem('name', userCredential.user.displayName || '');
+                    window.location.href = "/";
+                }
+            } catch (error) {
+                console.error("Error during email-password login:", error);
+                alert(`Login failed: ${error.message}`);
+            }
+        }
+
+        // Handle Google login
+        async function googleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const idToken = await result.user.getIdToken();
+
+                const response = await fetch('/verify-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id_token: idToken })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+                if (data.redirect) {
+                    window.location.href = `${data.redirect}?uid=${data.uid}`;
+                } else {
+                    localStorage.setItem('uid', result.uid);
+                    localStorage.setItem('email', result.user.email);
+                    localStorage.setItem('name', result.user.displayName || '');
+                    window.location.href = "/";
+                }
+            } catch (error) {
+                console.error("Error during Google login:", error);
+                alert(`Login failed: ${error.message}`);
+            }
+        }
+
+        // Check if user is logged in
+        firebase.auth().onAuthStateChanged((user) => {
+            const loginLink = document.getElementById('login-link');
+            const logoutButton = document.getElementById('logout-button');
+            const notificationsLink = document.getElementById('notifications-link');
+            if (user) {
+                // User is logged in
+                loginLink.style.display = 'none';
+                logoutButton.style.display = 'block';
+                notificationsLink.style.display = 'block';
+                notificationsLink.href = `/notifications/${user.uid}`;
+            } else {
+                // User is not logged in
+                loginLink.style.display = 'block';
+                logoutButton.style.display = 'none';
+                notificationsLink.style.display = 'none';
+            }
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-item">Home</a>
+        <a href="/dm" class="nav-item">DM</a>
+        <form action="/search" method="get" class="search-form">
+            <input type="text" name="query" placeholder="Search by username" required>
+            <button type="submit">Search</button>
+        </form>
+        <a href="/settings" class="nav-item">Settings</a>
+        <a href="#" class="nav-item" id="notifications-link">Notifications</a>
+        <a href="/login" class="nav-item" id="login-link">Login</a>
+        <a href="#" class="nav-item" id="profile-link" style="display: none;"></a>
+        <button onclick="logout()" class="nav-item" id="logout-button" style="display: none;">Logout</button>
+    </nav>
+    <div class="login-container">
+        <h1>Login</h1>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <button onclick="googleLogin()">Login with Google</button>
+        <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+    </div>
+</body>
+</html>

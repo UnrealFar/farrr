@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Additional Information</title>
+    <link rel="stylesheet" href="/static/settings.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-item">Home</a>
+        <a href="/dm" class="nav-item">DM</a>
+        <form action="/search" method="get" class="search-form">
+            <input type="text" name="query" placeholder="Search by username" required>
+            <button type="submit">Search</button>
+        </form>
+        <a href="/settings" class="nav-item">Settings</a>
+        <a href="#" class="nav-item" id="notifications-link">Notifications</a>
+        <a href="/login" class="nav-item" id="login-link">Login</a>
+        <a href="#" class="nav-item" id="profile-link" style="display: none;"></a>
+        <button onclick="logout()" class="nav-item" id="logout-button" style="display: none;">Logout</button>
+    </nav>
+    <div class="login-container">
+        <h1>Additional Information</h1>
+        <form action="/submit-additional-info" method="post" enctype="multipart/form-data">
+            <input type="hidden" id="uid" name="uid" value="">
+            <input type="text" id="username" name="username" placeholder="Username" required>
+            <input type="text" id="name" name="name" placeholder="Name" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <script>
+        // Get the UID from the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get('uid');
+        document.getElementById('uid').value = uid;
+        const notificationsLink = document.getElementById('notifications-link');
+        notificationsLink.href = `/notifications/${uid}`;
+    </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings</title>
+    <link rel="stylesheet" href="/static/settings.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-item">Home</a>
+        <a href="/dm" class="nav-item">DM</a>
+        <form action="/search" method="get" class="search-form">
+            <input type="text" name="query" placeholder="Search by username" required>
+            <button type="submit">Search</button>
+        </form>
+        <a href="/settings" class="nav-item">Settings</a>
+        <a href="#" class="nav-item" id="notifications-link">Notifications</a>
+        <a href="/login" class="nav-item" id="login-link">Login</a>
+        <a href="#" class="nav-item" id="profile-link" style="display: none;"></a>
+        <button onclick="logout()" class="nav-item" id="logout-button" style="display: none;">Logout</button>
+    </nav>
+    <div class="login-container">
+        <h1>Settings</h1>
+        <form action="/update-settings" method="post">
+            <input type="hidden" id="uid" name="uid" value="">
+            <input type="text" id="username" name="username" placeholder="Username" required>
+            <input type="text" id="name" name="name" placeholder="Name" required>
+            <button type="submit">Update</button>
+        </form>
+    </div>
+    <script>
+        // Get the UID from local storage
+        const uid = localStorage.getItem('uid');
+        document.getElementById('uid').value = uid;
+
+        // Check if user is logged in
+        firebase.auth().onAuthStateChanged((user) => {
+            const loginLink = document.getElementById('login-link');
+            const logoutButton = document.getElementById('logout-button');
+            const notificationsLink = document.getElementById('notifications-link');
+            if (user) {
+                // User is logged in
+                loginLink.style.display = 'none';
+                logoutButton.style.display = 'block';
+                notificationsLink.style.display = 'block';
+                notificationsLink.href = `/notifications/${user.uid}`;
+            } else {
+                // User is not logged in
+                loginLink.style.display = 'block';
+                logoutButton.style.display = 'none';
+                notificationsLink.style.display = 'none';
+            }
+        });
+
+        // Handle logout
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                console.log("User signed out.");
+                localStorage.removeItem('email');
+                localStorage.removeItem('name');
+                localStorage.removeItem('uid');
+                window.location.href = "/login";
+            }).catch((error) => {
+                console.error("Error during logout:", error);
+            });
+        }
+    </script>
+</body>
+</html>

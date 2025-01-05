@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <link rel="stylesheet" href="/static/profile.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqK1KZoZ-pZHy3RB-JlsuSBZ3vnq12Xmc",
+            authDomain: "farrr-app.firebaseapp.com",
+            projectId: "farrr-app",
+            storageBucket: "farrr-app.firebasestorage.app",
+            messagingSenderId: "476419586636",
+            appId: "1:476419586636:web:28c9fe6027e05afae052e9",
+            measurementId: "G-NTBL22YW3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Check if user is logged in
+        firebase.auth().onAuthStateChanged(async (user) => {
+            const loginLink = document.getElementById('login-link');
+            const logoutButton = document.getElementById('logout-button');
+            const profileLink = document.getElementById('profile-link');
+            const notificationsLink = document.getElementById('notifications-link');
+            if (user) {
+                // User is logged in
+                loginLink.style.display = 'none';
+                logoutButton.style.display = 'block';
+                const idToken = await user.getIdToken();
+                const response = await fetch('/verify-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id_token: idToken })
+                });
+                const data = await response.json();
+                localStorage.setItem('uid', user.uid); // Set UID in local storage
+                localStorage.setItem('username', data.username); // Set username in local storage
+                profileLink.style.display = 'block';
+                profileLink.innerText = `@${data.username}`;
+                profileLink.href = `/profile/${data.username}`;
+                notificationsLink.href = `/notifications/${user.uid}`;
+            } else {
+                // User is not logged in
+                loginLink.style.display = 'block';
+                logoutButton.style.display = 'none';
+                profileLink.style.display = 'none';
+                notificationsLink.style.display = 'none';
+            }
+        });
+
+        // Handle logout
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                console.log("User signed out.");
+                localStorage.removeItem('email');
+                localStorage.removeItem('name');
+                localStorage.removeItem('uid');
+                localStorage.removeItem('username');
+                window.location.href = "/login";
+            }).catch((error) => {
+                console.error("Error during logout:", error);
+            });
+        }
+
+        // Handle follow/unfollow
+        async function toggleFollow(followUid) {
+            try {
+                const uid = localStorage.getItem('uid');
+                if (!uid) {
+                    throw new Error("User is not logged in.");
+                }
+                const followButton = document.getElementById('follow-button');
+                const isFollowing = followButton.innerText === 'Unfollow';
+                const url = isFollowing ? '/unfollow' : '/follow';
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        uid: uid,
+                        follow_uid: followUid
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(data);
+                alert(data.message);
+                followButton.innerText = isFollowing ? 'Follow' : 'Unfollow';
+            } catch (error) {
+                console.error("Error during follow/unfollow:", error);
+            }
+        }
+
+        // Check follow status
+        async function checkFollowStatus(followUid) {
+            const uid = localStorage.getItem('uid');
+            if (!uid) {
+                return;
+            }
+            const response = await fetch(`/check-follow-status?uid=${uid}&follow_uid=${followUid}`);
+            const data = await response.json();
+            const followButton = document.getElementById('follow-button');
+            followButton.innerText = data.isFollowing ? 'Unfollow' : 'Follow';
+        }
+    </script>
+</head>
+<body onload="checkFollowStatus('{{ user['uid'] }}')">
+    <nav class="navbar">
+        <a href="/" class="nav-item">Home</a>
+        <a href="/dm" class="nav-item">DM</a>
+        <form action="/search" method="get" class="search-form">
+            <input type="text" name="query" placeholder="Search by username" required>
+            <button type="submit">Search</button>
+        </form>
+        <a href="/settings" class="nav-item">Settings</a>
+        <a href="#" class="nav-item" id="notifications-link">Notifications</a>
+        <a href="/login" class="nav-item" id="login-link">Login</a>
+        <a href="#" class="nav-item" id="profile-link" style="display: none;"></a>
+        <button onclick="logout()" class="nav-item" id="logout-button" style="display: none;">Logout</button>
+    </nav>
+    <div class="profile-container">
+        <h1>@{{ user['username'] }}</h1>
+        <h2>{{ user['name'] }}</h2>
+        <p></p>
+        <button id="follow-button" onclick="toggleFollow('{{ user['uid'] }}')">Follow</button>
+    </div>
+</body>
+</html>
