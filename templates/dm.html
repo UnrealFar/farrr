@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Messages</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <link rel="stylesheet" href="/static/dm.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-item">Home</a>
+        <a href="/dm" class="nav-item" id="dm-link">DM</a>
+        <form action="/search" method="get" class="search-form">
+            <input type="text" name="query" placeholder="Search by username" required>
+            <button type="submit">Search</button>
+        </form>
+        <a href="/settings" class="nav-item">Settings</a>
+        <a href="#" class="nav-item" id="notifications-link">Notifications</a>
+        <a href="/login" class="nav-item" id="login-link">Login</a>
+        <a href="#" class="nav-item" id="profile-link" style="display: none;"></a>
+        <button onclick="logout()" class="nav-item" id="logout-button" style="display: none;">Logout</button>
+    </nav>
+    <div class="dm-container">
+        <div class="sidebar">
+            <h2>DM List</h2>
+            <button onclick="showCreateDmPopup()">Create DM</button>
+            <ul id="dm-list">
+                <!-- DM list will be dynamically loaded here -->
+            </ul>
+        </div>
+        <div class="chatbox" id="chatbox">
+            <h2 id="chatbox-title">Chat</h2>
+            <div class="messages">
+                <ul id="messages-list">
+                    <!-- Messages will be dynamically loaded here -->
+                </ul>
+            </div>
+            <form action="/send-message" method="post" id="send-message-form">
+                <input type="hidden" name="dm_id" id="dm_id">
+                <input type="hidden" name="sender_uid" value="{{ user.uid }}">
+                <textarea name="message" placeholder="Type your message" required></textarea>
+                <button type="submit">Send</button>
+            </form>
+            <form action="/lock-dm" method="post" id="lock-dm-form">
+                <input type="hidden" name="dm_id" id="lock_dm_id">
+                <input type="checkbox" name="lock" id="lock" value="true">
+                <label for="lock">Lock Chat</label>
+                <button type="submit">Update Lock Status</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create DM Popup -->
+    <div id="create-dm-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="hideCreateDmPopup()">&times;</span>
+            <h2>Select a user to DM</h2>
+            <ul id="eligible-users-list">
+                <!-- Eligible users will be dynamically loaded here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to dynamically load DM list, messages, and handle form submissions
+        async function loadDmList() {
+            const response = await fetch('/get-dm-list/{{ user.uid }}');
+            const data = await response.json();
+            const dmList = document.getElementById('dm-list');
+            dmList.innerHTML = '';
+            data.dms.forEach(dm => {
+                const li = document.createElement('li');
+                li.textContent = dm.username;
+                li.onclick = () => setDmId(dm.dm_id, dm.username);
+                dmList.appendChild(li);
+            });
+        }
+
+        async function loadMessages(dm_id) {
+            const response = await fetch(`/get-messages/${dm_id}`);
+            const data = await response.json();
+            const messagesList = document.getElementById('messages-list');
+            messagesList.innerHTML = '';
+            data.messages.forEach(message => {
+                const li = document.createElement('li');
+                li.textContent = `${message.sender_uid}: ${message.message}`;
+                messagesList.appendChild(li);
+            });
+        }
+
+        function setDmId(dm_id, username) {
+            document.getElementById('dm_id').value = dm_id;
+            document.getElementById('lock_dm_id').value = dm_id;
+            document.getElementById('chatbox-title').textContent = `Chat with ${username}`;
+            document.getElementById('chatbox').style.display = 'flex';
+            loadMessages(dm_id);
+        }
+
+        async function showCreateDmPopup() {
+            const response = await fetch('/get-eligible-users/{{ user.uid }}');
+            if (!response.ok) {
+                console.error('Failed to fetch eligible users');
+                return;
+            }
+            const data = await response.json();
+            const eligibleUsersList = document.getElementById('eligible-users-list');
+            eligibleUsersList.innerHTML = '';
+            if (data.users) {
+                data.users.forEach(user => {
+                    const li = document.createElement('li');
+                    li.textContent = user.username;
+                    li.onclick = () => createDm(user.uid);
+                    eligibleUsersList.appendChild(li);
+                });
+            }
+            document.getElementById('create-dm-popup').style.display = 'block';
+        }
+
+        function hideCreateDmPopup() {
+            document.getElementById('create-dm-popup').style.display = 'none';
+        }
+
+        async function createDm(recipient_uid) {
+            const response = await fetch('/create-dm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    uid: '{{ user.uid }}',
+                    recipient_uid: recipient_uid
+                })
+            });
+            const data = await response.json();
+            if (data.dm_id) {
+                hideCreateDmPopup();
+                loadDmList();
+                setDmId(data.dm_id, data.username);
+            } else {
+                alert('Failed to create DM');
+            }
+        }
+
+        // Load DM list on page load
+        loadDmList();
+    </script>
+</body>
+</html>

@@ -2,12 +2,13 @@
 <html>
 <head>
     <title>Additional Information</title>
+    <link rel="stylesheet" href="/static/index.css">
     <link rel="stylesheet" href="/static/settings.css">
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="nav-item">Home</a>
-        <a href="/dm" class="nav-item">DM</a>
+        <a href="/dm" class="nav-item" id="dm-link">DM</a>
         <form action="/search" method="get" class="search-form">
             <input type="text" name="query" placeholder="Search by username" required>
             <button type="submit">Search</button>
@@ -34,6 +35,8 @@
         document.getElementById('uid').value = uid;
         const notificationsLink = document.getElementById('notifications-link');
         notificationsLink.href = `/notifications/${uid}`;
+        const dmLink = document.getElementById('dm-link');
+        dmLink.href = `/dm/${uid}`;
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <title>Sign Up</title>
     <link rel="stylesheet" href="/static/index.css">
-    <link rel="stylesheet" href="/static/login.css">
+    <link rel="stylesheet" href="/static/signup.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script>
@@ -25,16 +25,22 @@
         async function signup() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+            const name = document.getElementById('name').value;
             try {
                 const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
                 const idToken = await userCredential.user.getIdToken();
 
-                const response = await fetch('/verify-token', {
+                const response = await fetch('/submit-additional-info', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body: JSON.stringify({ id_token: idToken })
+                    body: new URLSearchParams({
+                        uid: userCredential.user.uid,
+                        username: username,
+                        name: name
+                    })
                 });
 
                 if (!response.ok) {
@@ -43,16 +49,13 @@
 
                 const data = await response.json();
                 console.log(data);
-                if (data.redirect) {
-                    window.location.href = `${data.redirect}?uid=${data.uid}`;
-                } else {
-                    localStorage.setItem('uid', userCredential.uid);
-                    localStorage.setItem('email', userCredential.user.email);
-                    localStorage.setItem('name', userCredential.user.displayName || '');
-                    window.location.href = "/";
-                }
+                sessionStorage.setItem('uid', userCredential.user.uid);
+                sessionStorage.setItem('email', userCredential.user.email);
+                sessionStorage.setItem('name', name);
+                sessionStorage.setItem('password', data.password);
+                window.location.href = "/";
             } catch (error) {
-                console.error("Error during email-password signup:", error);
+                console.error("Error during signup:", error);
                 alert(`Signup failed: ${error.message}`);
             }
         }
@@ -81,9 +84,10 @@
                 if (data.redirect) {
                     window.location.href = `${data.redirect}?uid=${data.uid}`;
                 } else {
-                    localStorage.setItem('uid', result.uid);
-                    localStorage.setItem('email', result.user.email);
-                    localStorage.setItem('name', result.user.displayName || '');
+                    sessionStorage.setItem('uid', result.user.uid);
+                    sessionStorage.setItem('email', result.user.email);
+                    sessionStorage.setItem('name', result.user.displayName || '');
+                    sessionStorage.setItem('password', data.password);
                     window.location.href = "/";
                 }
             } catch (error) {
@@ -91,54 +95,12 @@
                 alert(`Signup failed: ${error.message}`);
             }
         }
-
-        // Check if user is logged in
-        firebase.auth().onAuthStateChanged(async (user) => {
-            const loginLink = document.getElementById('login-link');
-            const logoutButton = document.getElementById('logout-button');
-            const profileLink = document.getElementById('profile-link');
-            if (user) {
-                // User is logged in
-                loginLink.style.display = 'none';
-                logoutButton.style.display = 'block';
-                const idToken = await user.getIdToken();
-                const response = await fetch('/verify-token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ id_token: idToken })
-                });
-                const data = await response.json();
-                profileLink.style.display = 'block';
-                profileLink.innerText = `@${data.username}`;
-                profileLink.href = `/profile/${data.username}`;
-            } else {
-                // User is not logged in
-                loginLink.style.display = 'block';
-                logoutButton.style.display = 'none';
-                profileLink.style.display = 'none';
-            }
-        });
-
-        // Handle logout
-        function logout() {
-            firebase.auth().signOut().then(() => {
-                console.log("User signed out.");
-                localStorage.removeItem('email');
-                localStorage.removeItem('name');
-                localStorage.removeItem('uid');
-                window.location.href = "/login";
-            }).catch((error) => {
-                console.error("Error during logout:", error);
-            });
-        }
     </script>
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="nav-item">Home</a>
-        <a href="/dm" class="nav-item">DM</a>
+        <a href="/dm" class="nav-item" id="dm-link">DM</a>
         <form action="/search" method="get" class="search-form">
             <input type="text" name="query" placeholder="Search by username" required>
             <button type="submit">Search</button>
@@ -149,12 +111,15 @@
         <a href="#" class="nav-item" id="profile-link" style="display: none;"></a>
         <button onclick="logout()" class="nav-item" id="logout-button" style="display: none;">Logout</button>
     </nav>
-    <div class="login-container">
+    <div class="signup-container">
         <h1>Sign Up</h1>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Password">
+        <input type="text" id="username" placeholder="Username">
+        <input type="text" id="name" placeholder="Name">
         <button onclick="signup()">Sign Up</button>
         <button onclick="googleSignup()">Sign Up with Google</button>
+        <p>Already have an account? <a href="/login">Login</a></p>
     </div>
 </body>
 </html>

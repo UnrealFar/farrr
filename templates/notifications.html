@@ -27,6 +27,7 @@
             const logoutButton = document.getElementById('logout-button');
             const profileLink = document.getElementById('profile-link');
             const notificationsLink = document.getElementById('notifications-link');
+            const dmLink = document.getElementById('dm-link');
             if (user) {
                 // User is logged in
                 loginLink.style.display = 'none';
@@ -45,12 +46,15 @@
                 profileLink.innerText = `@${data.username}`;
                 profileLink.href = `/profile/${data.username}`;
                 notificationsLink.href = `#`;
+                dmLink.style.display = 'block';
+                dmLink.href = `/dm/${user.uid}`;
             } else {
                 // User is not logged in
                 loginLink.style.display = 'block';
                 logoutButton.style.display = 'none';
                 profileLink.style.display = 'none';
                 notificationsLink.style.display = 'none';
+                dmLink.style.display = 'none';
             }
         });
 
@@ -71,7 +75,7 @@
 <body>
     <nav class="navbar">
         <a href="/" class="nav-item">Home</a>
-        <a href="/dm" class="nav-item">DM</a>
+        <a href="/dm" class="nav-item" id="dm-link">DM</a>
         <form action="/search" method="get" class="search-form">
             <input type="text" name="query" placeholder="Search by username" required>
             <button type="submit">Search</button>
@@ -88,7 +92,7 @@
             {% for notification in notifications %}
                 <li class="{% if not notification['read'] %}unread{% endif %}">
                     {% if notification['type'] == 'follow' %}
-                        <p><a href="/profile/{{ notification['data'] }}">@{{ notification['data'].split(":")[-1] }}</a> followed you.</p>
+                        <p><a href="/profile/{{ notification['data'].split(':')[0] }}">@{{ notification['data'].split(":")[-1] }}</a> followed you.</p>
                     {% endif %}
                 </li>
             {% endfor %}

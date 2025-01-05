@@ -3,3 +3,4 @@ python-multipart
 dotenv
 firebase-admin
 google-cloud-firestore
+cryptography

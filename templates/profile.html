@@ -117,7 +117,7 @@
 <body onload="checkFollowStatus('{{ user['uid'] }}')">
     <nav class="navbar">
         <a href="/" class="nav-item">Home</a>
-        <a href="/dm" class="nav-item">DM</a>
+        <a href="/dm" class="nav-item" id="dm-link">DM</a>
         <form action="/search" method="get" class="search-form">
             <input type="text" name="query" placeholder="Search by username" required>
             <button type="submit">Search</button>

@@ -46,9 +46,10 @@
                 if (data.redirect) {
                     window.location.href = `${data.redirect}?uid=${data.uid}`;
                 } else {
-                    localStorage.setItem('uid', userCredential.uid);
-                    localStorage.setItem('email', userCredential.user.email);
-                    localStorage.setItem('name', userCredential.user.displayName || '');
+                    sessionStorage.setItem('uid', userCredential.user.uid);
+                    sessionStorage.setItem('email', userCredential.user.email);
+                    sessionStorage.setItem('name', userCredential.user.displayName || '');
+                    sessionStorage.setItem('password', data.password);
                     window.location.href = "/";
                 }
             } catch (error) {
@@ -81,9 +82,10 @@
                 if (data.redirect) {
                     window.location.href = `${data.redirect}?uid=${data.uid}`;
                 } else {
-                    localStorage.setItem('uid', result.uid);
-                    localStorage.setItem('email', result.user.email);
-                    localStorage.setItem('name', result.user.displayName || '');
+                    sessionStorage.setItem('uid', result.user.uid);
+                    sessionStorage.setItem('email', result.user.email);
+                    sessionStorage.setItem('name', result.user.displayName || '');
+                    sessionStorage.setItem('password', data.password);
                     window.location.href = "/";
                 }
             } catch (error) {
@@ -97,25 +99,39 @@
             const loginLink = document.getElementById('login-link');
             const logoutButton = document.getElementById('logout-button');
             const notificationsLink = document.getElementById('notifications-link');
+            const dmLink = document.getElementById('dm-link');
             if (user) {
                 // User is logged in
                 loginLink.style.display = 'none';
                 logoutButton.style.display = 'block';
                 notificationsLink.style.display = 'block';
                 notificationsLink.href = `/notifications/${user.uid}`;
+                dmLink.style.display = 'block';
+                dmLink.href = `/dm/${user.uid}`;
             } else {
                 // User is not logged in
                 loginLink.style.display = 'block';
                 logoutButton.style.display = 'none';
                 notificationsLink.style.display = 'none';
+                dmLink.style.display = 'none';
             }
         });
+
+        // Handle logout
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                sessionStorage.clear();
+                window.location.href = "/login";
+            }).catch((error) => {
+                console.error("Error during logout:", error);
+            });
+        }
     </script>
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="nav-item">Home</a>
-        <a href="/dm" class="nav-item">DM</a>
+        <a href="/dm" class="nav-item" id="dm-link">DM</a>
         <form action="/search" method="get" class="search-form">
             <input type="text" name="query" placeholder="Search by username" required>
             <button type="submit">Search</button>
